@@ -13,6 +13,10 @@ dldata("NEI_data.zip",
 ## This first line will likely take a few seconds the first time. Be patient!
 if (!exists("NEI")) {
     NEI <- readRDS("summarySCC_PM25.rds")
+    NEI$fips <- factor(NEI$fips)
+    NEI$SCC <- factor(NEI$SCC)
+    NEI$Pollutant <- factor(NEI$Pollutant)
+    NEI$type <- factor(NEI$type)
 } else {
     message("using previously loaded NEI data.")
 }
@@ -21,6 +25,5 @@ if (!exists("SCC")) {
 } else {
     message("using previously loaded SCC data.")
 }
-
 ## WARNING: do not modify NEI or SCC after this point, 
 ## inconsistent behovior may occur
