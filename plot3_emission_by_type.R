@@ -1,11 +1,11 @@
 # =============================================================================
-# Question 2: Have total emissions from PM2.5 decreased in the Baltimore City, 
-# Maryland (fips == "24510") from 1999 to 2008? Use the base plotting system to
-# make a plot answering this question.
+# Question 3: Of the four types of sources indicated by the type (point, 
+# nonpoint, onroad, nonroad) variable, which of these four sources have seen 
+# decreases in emissions from 1999-2008 for Baltimore City? Which have seen 
+# increases in emissions from 1999-2008? Use the ggplot2 plotting system to 
+# make a plot answer this question.
 # =============================================================================
 library(plyr); library(dplyr)
-library(RColorBrewer)
-library(reshape2)
 library(ggplot2)
 if (file.exists("ExploringEmissionsData")) setwd("ExploringEmissionsData")
 
@@ -40,7 +40,6 @@ if (!exists("SCC")) {
 # Baltimore City, Maryland has fips = 24510
 totalemissions <- NEI %>% filter(fips == 24510) %>% group_by(type,year) %>% 
     summarize(TotalEmissions = sum(Emissions))
-# totalemissions <- dcast(totalemissions, year ~ type, value.var="TotalEmissions")
 
 # =============================================================================
 # plot and save results
@@ -48,9 +47,6 @@ totalemissions <- NEI %>% filter(fips == 24510) %>% group_by(type,year) %>%
 ## set up window
 PPI <- 96 # pixels per inch for my monitor
 windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI, xpos=0, ypos=0)
-
-## initialize nicer colors
-cols <- brewer.pal(4,"Set1")
 
 ## plot data using ggplot2
 g <- ggplot(totalemissions, aes(year, TotalEmissions, color=type))
