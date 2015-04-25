@@ -1,4 +1,4 @@
-# ExploringEmissionsData
+# Exploring Emissions Data
 Coursera Data Science project for exploratory data analysis. The below introduction and description of data come from course assignment page. The assignment focuses on exploring how the polutant PM2.5, or fine particulate matter, has behaved over a 10 year period between 1999 and 2008. 
 
 ## Introduction
