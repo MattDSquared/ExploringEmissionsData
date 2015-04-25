@@ -52,13 +52,13 @@ motorvehicledescriptor = c("Highway Vehicles - Gasoline",
                            "Off-highway Vehicle Gasoline, 2-Stroke",
                            "Off-highway Vehicle Diesel")
 
-SCCmotorvehicles <- filter(SCC, (SCC.Level.One == "Mobile Sources") & 
+SCCmotor <- filter(SCC, (SCC.Level.One == "Mobile Sources") & 
                                (SCC.Level.Two %in% motorvehicledescriptor))
 
 ## subset for Baltimore City, Maryland, fips = 24510
 ## calculate total emissions table
 totalemissions <- NEI %>% 
-    filter((fips == 24510) & (SCC %in% SCCmotorvehicles$SCC)) %>% 
+    filter((fips == 24510) & (SCC %in% SCCmotor$SCC)) %>% 
     group_by(year) %>% 
     summarize(TotalEmissions = sum(Emissions))
 

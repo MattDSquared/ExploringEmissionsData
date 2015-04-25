@@ -1,6 +1,8 @@
 # =============================================================================
-# Question 5: How have emissions from motor vehicle sources changed from 1999-
-# 2008 in Baltimore City?
+# Question 6: Compare emissions from motor vehicle sources in Baltimore City 
+# with emissions from motor vehicle sources in Los Angeles County, California 
+# (fips == 06037). Which city has seen greater changes over time in motor 
+# vehicle emissions?
 # =============================================================================
 library(plyr); library(dplyr)
 library(ggplot2)
@@ -53,14 +55,15 @@ motorvehicledescriptor = c("Highway Vehicles - Gasoline",
                            "Off-highway Vehicle Gasoline, 2-Stroke",
                            "Off-highway Vehicle Diesel")
 
-SCCmotorvehicles <- filter(SCC, (SCC.Level.One == "Mobile Sources") & 
+SCCmotor <- filter(SCC, (SCC.Level.One == "Mobile Sources") & 
                                (SCC.Level.Two %in% motorvehicledescriptor))
 
 ## subset for Baltimore City, Maryland, fips = 24510
+## subset for Los Angeles, CA, fips = 06037
 ## calculate total emissions table
 totalemissions <- NEI %>% 
-    filter((fips == 24510) & (SCC %in% SCCmotorvehicles$SCC)) %>% 
-    group_by(year) %>% 
+    filter(((fips == 24510) | (fips == 06037)) & (SCC %in% SCCmotor$SCC)) %>% 
+    group_by(year,fips) %>% 
     summarize(TotalEmissions = sum(Emissions))
 
 # =============================================================================
@@ -71,7 +74,7 @@ PPI <- 96 # pixels per inch for my monitor
 windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI, xpos=0, ypos=0)
 
 ## plot data using ggplot2
-g <- ggplot(totalemissions, aes(year, TotalEmissions))
+g <- ggplot(totalemissions, aes(year, TotalEmissions, color=fips))
 g <- g + 
     geom_line(linetype=2) +
     geom_smooth(method="lm", se=FALSE, linetype=1, size=1) +
@@ -81,5 +84,5 @@ g <- g +
 print(g)
 
 ## save results to image file
-dev.copy(png, file="plot5_motorvehicle.png", width=640, height=480); 
+dev.copy(png, file="plot6_motorvehicle_LAvsBA.png", width=640, height=480); 
 dev.off()
