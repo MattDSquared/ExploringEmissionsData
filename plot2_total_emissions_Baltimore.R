@@ -1,15 +1,14 @@
 # =============================================================================
-# Question 1: Have total emissions from PM2.5 decreased in the United States 
-# from 1999 to 2008? Using the base plotting system, make a plot showing the 
-# total PM2.5 emission from all sources for each of the years 1999, 2002, 2005,
-# and 2008.
+# Question 2: Have total emissions from PM2.5 decreased in the Baltimore City, 
+# Maryland (fips == "24510") from 1999 to 2008? Use the base plotting system to
+# make a plot answering this question.
 # =============================================================================
 library(plyr); library(dplyr)
 library(RColorBrewer)
 if (file.exists("ExploringEmissionsData")) setwd("ExploringEmissionsData")
 
 # =============================================================================
-## Load the data
+# Load the data
 # =============================================================================
 ## download data useing external function
 source("download.R")
@@ -36,7 +35,8 @@ if (!exists("SCC")) {
 # =============================================================================
 ## calculate total emissions
 # =============================================================================
-totalemissions <- NEI %>% group_by(year) %>% 
+# Baltimore City, Maryland has fips = 24510
+totalemissions <- NEI %>% filter(fips == 24510) %>% group_by(year) %>% 
     summarize(TotalEmissions = sum(Emissions))
 
 # =============================================================================
@@ -45,9 +45,15 @@ totalemissions <- NEI %>% group_by(year) %>%
 PPI <- 96 # pixels per inch for my monitor
 windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI)
 
-plot(totalemissions, type = "l", 
+plot(totalemissions, "l", lty=2,
      ylab="PM2.5 Emmisions (tons)", xlab="Year")
-title("Total PM2.5 Emission for US between 1999 and 2008")
+title("Total PM2.5 Emission for Baltimore between 1999 and 2008")
+model <- lm(TotalEmissions ~ year, totalemissions)
+abline(model, lwd=2)
+
+strlegend <- c("")
+legend("topright", legend=c("PM2.5 Baltimore", "Linear Fit"),
+       lwd=c(1,2), lty=c(2,1))
 
 ## save results to image file
-dev.copy(png, file="plot1_PM2.5_over_time.png"); dev.off()
+dev.copy(png, file="plot2_PM2.5_baltimore.png"); dev.off()
