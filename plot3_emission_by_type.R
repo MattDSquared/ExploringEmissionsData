@@ -5,6 +5,8 @@
 # =============================================================================
 library(plyr); library(dplyr)
 library(RColorBrewer)
+library(reshape2)
+library(ggplot2)
 if (file.exists("ExploringEmissionsData")) setwd("ExploringEmissionsData")
 
 # =============================================================================
@@ -33,27 +35,35 @@ if (!exists("SCC")) {
 }
 
 # =============================================================================
-## calculate total emissions
+# calculate total emissions
 # =============================================================================
 # Baltimore City, Maryland has fips = 24510
-totalemissions <- NEI %>% filter(fips == 24510) %>% group_by(year) %>% 
+totalemissions <- NEI %>% filter(fips == 24510) %>% group_by(type,year) %>% 
     summarize(TotalEmissions = sum(Emissions))
+# totalemissions <- dcast(totalemissions, year ~ type, value.var="TotalEmissions")
 
 # =============================================================================
-## plot and save results
+# plot and save results
 # =============================================================================
+## set up window
 PPI <- 96 # pixels per inch for my monitor
-windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI)
+windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI, xpos=0, ypos=0)
 
-plot(totalemissions, "l", lty=2,
-     ylab="PM2.5 Emmisions (tons)", xlab="Year")
-title("Total PM2.5 Emission for Baltimore between 1999 and 2008")
-model <- lm(TotalEmissions ~ year, totalemissions)
-abline(model, lwd=2)
+## initialize nicer colors
+cols <- brewer.pal(4,"Set1")
 
-strlegend <- c("")
-legend("topright", legend=c("PM2.5 Baltimore", "Linear Fit"),
-       lwd=c(1,2), lty=c(2,1))
+## plot data using ggplot2
+g <- ggplot(totalemissions, aes(year, TotalEmissions, color=type))
+g <- g + 
+    geom_line(linetype=2) +
+    geom_smooth(method="lm", se=FALSE, linetype=1, size=1) +
+    labs(x = "Year") +
+    labs(y = "PM2.5 Emmisions (tons)") + 
+    labs(title = "Baltimore PM2.5 Emission by type, 1999-2008")
+print(g)
+#(qplot(year, TotalEmissions, data=totalemissions, geom="line", color=type))
+
 
 ## save results to image file
-dev.copy(png, file="plot2_PM2.5_baltimore.png"); dev.off()
+dev.copy(png, file="plot3_PM2.5_baltimorebytype.png", width=640, height=480); 
+dev.off()
