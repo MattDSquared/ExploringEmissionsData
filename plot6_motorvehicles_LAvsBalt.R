@@ -34,7 +34,11 @@ if (!exists("SCC")) {
 }
 
 # =============================================================================
-# calculate total emissions
+# calculate mean-centered, total emissions
+#   Mean-centering shows change in each data set as compared to the other.
+#   Total emissions avoids any confusion for how the data might have been 
+#   scaled. For future work, bringing in the square area of the county, or 
+#   possibly making PM2.5 per capita would be valuable scaling factor. 
 # =============================================================================
 
 ## define motor vehicle using the following criteria:
@@ -58,13 +62,26 @@ motorvehicledescriptor = c("Highway Vehicles - Gasoline",
 SCCmotor <- filter(SCC, (SCC.Level.One == "Mobile Sources") & 
                                (SCC.Level.Two %in% motorvehicledescriptor))
 
-## subset for Baltimore City, Maryland, fips = 24510
-## subset for Los Angeles, CA, fips = 06037
-## calculate total emissions table
-totalemissions <- NEI %>% 
-    filter(((fips == 24510) | (fips == 06037)) & (SCC %in% SCCmotor$SCC)) %>% 
+## Calculate total emissions data based on fips and motor vehicle SCC
+# subset for Baltimore City, Maryland, fips = 24510
+# subset for Los Angeles, CA, fips = 06037
+emSum <- NEI %>% 
+    filter(((fips == "24510") | (fips == "06037")) & (SCC %in% SCCmotor$SCC)) %>% 
     group_by(year,fips) %>% 
     summarize(TotalEmissions = sum(Emissions))
+
+## Shift data for comparison of change to initial 1999 value
+# TODO: there's probably a cleaner way to do this, but this works for now
+# get initial emissions for each city
+IDX.Balt <- emSum$fips == "24510"
+IDX.LA <- emSum$fips == "06037"
+em0.Balt <- emSum$TotalEmissions[IDX.Balt & emSum$year == 1999]
+em0.LA <- emSum$TotalEmissions[IDX.LA & emSum$year == 1999]
+# initialize trended variable (compiler complains otherwise)
+emSum$TrendedEmissions <- rep(0,nrow(emSum))
+# subract TotalEmissions by initial value
+emSum$TrendedEmissions[IDX.Balt] <- emSum$TotalEmissions[IDX.Balt] - em0.Balt
+emSum$TrendedEmissions[IDX.LA] <- emSum$TotalEmissions[IDX.LA] - em0.LA
 
 # =============================================================================
 # plot and save results
@@ -74,13 +91,20 @@ PPI <- 96 # pixels per inch for my monitor
 windows(width=640/PPI, height=480/PPI, xpinch=PPI, ypinch=PPI, xpos=0, ypos=0)
 
 ## plot data using ggplot2
-g <- ggplot(totalemissions, aes(year, TotalEmissions, color=fips))
+# rename fips for clarity
+emSum <- emSum %>% mutate(City = sub("24510","Baltimore", fips)) %>%
+    mutate(City = sub("06037","Los Angeles", City))
+
+# line plot used for consistency with previous plots, bar may be better here
+g <- ggplot(emSum, aes(year, TrendedEmissions, color=City))
 g <- g + 
     geom_line(linetype=2) +
     geom_smooth(method="lm", se=FALSE, linetype=1, size=1) +
     labs(x = "Year") +
-    labs(y = "PM2.5 Emmisions (tons)") + 
-    labs(title = "Baltimore PM2.5 Emission from Motor Vehicles, 1999-2008")
+    labs(y = "Change in PM2.5 Emmisions (tons)") + 
+    labs(legend = c("Baltimore", "Los Angeles"))
+g <- g + labs(title = paste("Change in PM2.5 from Motor Vehicles\n",
+                            "Baltimore vs. Los Angeles, 1999-2008", sep=""))
 print(g)
 
 ## save results to image file
