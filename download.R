@@ -5,16 +5,22 @@
 # doesn't download the file if it already exists, but does overwrite unzipped
 # files.
 # =============================================================================
-dldata <- function(dlfilepath, dataURL){
+dldata <- function(dlfilepath, dlfilename, dataURL){
     
-    if (!file.exists(dlfilepath)){ 
+    dlfilepath = file.path(getwd(),dlfilepath)
+    dlfullfilename = file.path(dlfilepath, dlfilename)
+    
+    dir.create(dlfilepath, showWarnings = FALSE)
+    
+    if (!file.exists(dlfullfilename)){ 
         # set browser to download file through IE protocol (for https)
         setInternet2(use = TRUE)
-        download.file(dataURL, destfile = dlfilepath, mode="wb")
+        download.file(dataURL, destfile = dlfullfilename, mode="wb")
     } else {
-        message("using previously downloaded data.")
+        message("Using previously downloaded data.")
     }
     
     # unzip, overwrites data
-    unzip(dlfilepath)
+    message("Unzipping original zip file...")
+    unzip(dlfullfilename,exdir = dlfilepath)
 }
